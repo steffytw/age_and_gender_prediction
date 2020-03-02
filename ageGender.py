@@ -1,6 +1,14 @@
 import cv2
 import math
 import argparse
+from tkinter import filedialog
+from tkinter import *
+import os
+
+
+window =Tk()
+window.title("Age and Gender")
+from tkinter import filedialog
 
 def highlightFace(net, frame, conf_threshold=0.7):
     frameOpencvDnn=frame.copy()
@@ -44,33 +52,49 @@ ageNet=cv2.dnn.readNet(ageModel,ageProto)
 genderNet=cv2.dnn.readNet(genderModel,genderProto)
 
 # video=cv2.VideoCapture(args.image if args.image else 0)
-video=cv2.VideoCapture("a.mp4")
-padding=20
-while cv2.waitKey(1)<0:
-    hasFrame,frame=video.read()
-    if not hasFrame:
-        cv2.waitKey()
-        break
 
-    resultImg,faceBoxes=highlightFace(faceNet,frame)
-    if not faceBoxes:
-        print("No face detected")
+# label1.config(text="Video uploaded")
+def display():
+    path_to_file = filedialog.askopenfilename(initialdir="/", title="Open File", filetypes=(("PNGs", "*.png"),("JPGs", "*.jpg"), ("GIFs", "*.gif"), ("All Files", "*.*")))
+    video=cv2.VideoCapture(path_to_file)
+    padding=20
+    while cv2.waitKey(1)<0:
+        hasFrame,frame=video.read()
+        if not hasFrame:
+            cv2.waitKey()
+            break
 
-    for faceBox in faceBoxes:
-        face=frame[max(0,faceBox[1]-padding):
-                   min(faceBox[3]+padding,frame.shape[0]-1),max(0,faceBox[0]-padding)
-                   :min(faceBox[2]+padding, frame.shape[1]-1)]
+        resultImg,faceBoxes=highlightFace(faceNet,frame)
+        if not faceBoxes:
+            print("No face detected")
 
-        blob=cv2.dnn.blobFromImage(face, 1.0, (227,227), MODEL_MEAN_VALUES, swapRB=False)
-        genderNet.setInput(blob)
-        genderPreds=genderNet.forward()
-        gender=genderList[genderPreds[0].argmax()]
-        print(f'Gender: {gender}')
+        for faceBox in faceBoxes:
+            face=frame[max(0,faceBox[1]-padding):
+                    min(faceBox[3]+padding,frame.shape[0]-1),max(0,faceBox[0]-padding)
+                    :min(faceBox[2]+padding, frame.shape[1]-1)]
 
-        ageNet.setInput(blob)
-        agePreds=ageNet.forward()
-        age=ageList[agePreds[0].argmax()]
-        print(f'Age: {age[1:-1]} years')
+            blob=cv2.dnn.blobFromImage(face, 1.0, (227,227), MODEL_MEAN_VALUES, swapRB=False)
+            genderNet.setInput(blob)
+            genderPreds=genderNet.forward()
+            gender=genderList[genderPreds[0].argmax()]
+            print(f'Gender: {gender}')
 
-        cv2.putText(resultImg, f'{gender}, {age}', (faceBox[0], faceBox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,255), 2, cv2.LINE_AA)
-        cv2.imshow("Detecting age and gender", resultImg)
+            ageNet.setInput(blob)
+            agePreds=ageNet.forward()
+            age=ageList[agePreds[0].argmax()]
+            print(f'Age: {age[1:-1]} years')
+
+            cv2.putText(resultImg, f'{gender}, {age}', (faceBox[0], faceBox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,255), 2, cv2.LINE_AA)
+            cv2.imshow("Detecting age and gender", resultImg)
+    
+
+
+    
+but=Button(window, text = "upload image or video", command =display)
+but.pack()
+# label1.pack()
+
+
+# Fcanvas = Canvas(bg="black", height=600, width=170)
+window.geometry("300x300")
+window.mainloop()
