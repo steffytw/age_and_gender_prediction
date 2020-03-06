@@ -88,7 +88,7 @@ def display():
             cv2.imshow("Detecting age and gender", resultImg)
 
 def livevideo():
-    video=cv2.VideoCapture(args.image if args.image else 0)
+    video=cv2.VideoCapture(0)
     padding=20
     while cv2.waitKey(1)<0:
         hasFrame,frame=video.read()
